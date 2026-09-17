@@ -6,6 +6,7 @@ The following users are fictional employees used to simulate
 helpdesk incidents, access requests and onboarding scenarios.
 
 | Name | Department | Role | Systems |
+
 | Sarah Johnson | Reservations | Reservations Specialist | Microsoft 365, CRM, Front, Zoom |
 | Michael Brown | Concierge | Concierge Specialist | Microsoft 365, CRM, Front, Zoom |
 | Emily Davis | Sales | Sales Representative | Microsoft 365, CRM, Zoom |
