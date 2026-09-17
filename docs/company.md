@@ -1,8 +1,8 @@
-# AirAgustin Travel — IT Environment
+# Borealis Travel — IT Environment
 
 ## Company Overview
 
-AirAgustin Travel is a fictional premium travel company that provides
+Borealis Travel is a fictional premium travel company that provides
 high-end travel planning and concierge services to clients worldwide.
 
 The company operates through several departments that rely heavily
@@ -11,7 +11,7 @@ operations and provide service to customers.
 
 ## Departments
 
-AirAgustin Travel has approximately 100 employees distributed across
+Borealis Travel has approximately 100 employees distributed across
 the following departments:
 
 - Reservations
@@ -23,7 +23,7 @@ the following departments:
 
 ## IT Environment
 
-AirAgustin Travel relies on a centralized IT environment to support
+Borealis Travel relies on a centralized IT environment to support
 employees across all departments.
 
 The IT environment includes:
