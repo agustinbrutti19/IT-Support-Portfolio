@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Borealis Travel IT Support</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Borealis Travel IT Support</h1>
+        <p>Internal Helpdesk Portal</p>
+    </header>
+
+    <div class="layout">
+
+        <aside>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="#">Tickets</a>
+                <a href="#">Users</a>
+                <a href="#">Knowledge Base</a>
+            </nav>
+        </aside>
+
+        <main>
+            <h2>IT Support Dashboard</h2>
+            {% if ticket_created %}
+
+                <div class="success-message">
+                    Ticket #{{ ticket_created }} created successfully.
+                </div>
+
+            {% endif %}
+
+            <section class="stats">
+
+                <div class="card">
+                    <h3>Open Tickets</h3>
+                    <p>{{ open_tickets }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>High Priority</h3>
+                    <p>{{ high_priority }}</p>
+                </div>
+
+                <div class="card">
+                    <h3>Resolved</h3>
+                    <p>{{ resolved_tickets }}</p>
+                </div>
+
+            </section>
+
+            <section>
+                <h2>Recent Tickets</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>User</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        {% for ticket in recent_tickets %}
+
+                        <tr>
+                            <td>#{{ ticket.id }}</td>
+                            <td>{{ ticket.title }}</td>
+                            <td>{{ ticket.user_name }}</td>
+                            <td>{{ ticket.priority }}</td>
+                            <td>{{ ticket.status }}</td>
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</body>
+</html>

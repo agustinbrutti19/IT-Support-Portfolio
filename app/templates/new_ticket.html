@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>New Ticket - Borealis Travel IT Support</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Borealis Travel IT Support</h1>
+        <p>Internal Helpdesk Portal</p>
+    </header>
+
+    <div class="layout">
+
+        <aside>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/new-ticket">New Ticket</a>
+                <a href="#">Users</a>
+                <a href="#">Knowledge Base</a>
+            </nav>
+        </aside>
+
+        <main>
+
+            <h2>New Ticket</h2>
+
+            <p>Create a new helpdesk ticket.</p>
+            <form method="post" action="/new-ticket">
+
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" required>
+
+                <label for="description">Description</label>
+                <textarea id="description" name="description" required></textarea>
+
+                <label for="user_id">User</label>
+                
+                <select id="user_id" name="user_id" required>
+
+                    <option value="">Select a user</option>
+                    {% for user in users %}
+
+                        <option value="{{ user.id }}">
+                            {{ user.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <label for="category_id">Category</label>
+                <select id="category_id" name="category_id" required>
+                    
+                    <option value="">Select a category</option>
+
+                    {% for category in categories %}
+
+                        <option value="{{ category.id }}">
+                            {{ category.name }}
+                        </option>
+                    
+                    {% endfor %}    
+
+                </select>
+
+                <label for="priority_id">Priority</label>
+
+                <select id="priority_id" name="priority_id" required>
+
+                    <option value="">Select a priority</option>
+
+                    {% for priority in priorities %}
+
+                        <option value="{{ priority.id }}">
+                            {{ priority.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+                
+
+                <button type="submit">Create Ticket</button>
+
+            </form>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>
