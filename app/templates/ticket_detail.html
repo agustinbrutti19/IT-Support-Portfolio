@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ticket Detail - Borealis Travel IT Support</title>
+    <link rel="stylesheet" href="/static/style.css?v=3">
+</head>
+
+<body>
+
+    <header>
+        <h1>Borealis Travel IT Support</h1>
+        <p>Internal Helpdesk Portal</p>
+    </header>
+
+    <div class="layout">
+
+        <aside>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/new-ticket">New Ticket</a>
+                <a href="#">Users</a>
+                <a href="#">Knowledge Base</a>
+            </nav>
+        </aside>
+
+        <main>
+
+            <h2>Ticket #{{ ticket.id }}</h2>
+
+            <section class="ticket-detail">
+
+                <h3>{{ ticket.title }}</h3>
+
+                <p>
+                    <strong>User:</strong>
+                    {{ ticket.user_name }}
+                </p>
+
+                <p>
+                    <strong>Category:</strong>
+                    {{ ticket.category }}
+                </p>
+
+                <p>
+                    <strong>Priority:</strong>
+                    {{ ticket.priority }}
+                </p>
+
+                <p>
+                    <strong>Impact:</strong>
+                    {{ ticket.impact }}
+                </p>
+
+                <p>
+                    <strong>Urgency:</strong>
+                    {{ ticket.urgency }}
+                </p>
+
+                <p>
+                    <strong>Status:</strong>
+                    {{ ticket.status }}
+                </p>
+
+                <p>
+                    <strong>Assigned To:</strong>
+                    {{ ticket.assigned_to_name }}
+                </p>
+
+                <p>
+                    <a href="/tickets/{{ ticket.id }}/edit">
+                        Edit Ticket
+                    </a>
+                </p>
+
+                <h3>Assign Ticket</h3>
+
+                <form method="post" action="/tickets/{{ ticket.id }}/assignment">
+
+                    <label for="assigned_to">Assigned To</label>
+
+                    <select id="assigned_to" name="assigned_to" required>
+
+                        {% for user in it_users %}
+
+                            <option value="{{ user.id }}">
+                                {{ user.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <button type="submit">Assign Ticket</button>
+
+                </form>
+
+                <h3>Update Status</h3>
+
+                <form method="post" action="/tickets/{{ ticket.id }}/status">
+
+                    <label for="status_id">Status</label>
+
+                    <select id="status_id" name="status_id" required>
+
+                        {% for status in statuses %}
+
+                            <option
+                                    value="{{ status.id }}"
+                                    {% if status.name == ticket.status %}selected{% endif %}
+                            >
+                                {{ status.name }}
+                            </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    <button type="submit">Update Status</button>
+
+                </form>
+
+                <h3>Description</h3>
+
+                <p>
+                    {{ ticket.description }}
+                </p>
+                <h3>Ticket History</h3>
+
+                {% for update in updates %}
+
+                    <div class="ticket-update">
+
+                    <p>
+                        <strong>{{ update.user_name }}</strong>
+                        — {{ update.created_at }}
+                    </p>
+
+                    <p>
+                        {{ update.note }}
+                    </p>
+
+                    </div>
+
+                {% endfor %}
+
+                <h3>Escalations</h3>
+
+                <form method="post" action="/tickets/{{ ticket.id }}/escalation">
+
+                    <label for="team_id">Escalate to</label>
+
+                    <select id="team_id" name="team_id" required>
+                        {% for team in escalation_teams %}
+                            <option value="{{ team.id }}">
+                                {{ team.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+
+                    <label for="reason">Reason</label>
+
+                    <textarea
+                        id="reason"
+                        name="reason"
+                        rows="4"
+                        required
+                        placeholder="Explain why this ticket requires escalation..."
+                    ></textarea>
+
+                    <button type="submit">Escalate Ticket</button>
+
+                </form>
+
+                {% for escalation in escalations %}
+
+                    <div class="ticket-escalation">
+
+                        <p>
+                            <strong>Team:</strong>
+                            {{ escalation.team_name }}
+                        </p>
+
+                        <p>
+                            <strong>Reason:</strong>
+                            {{ escalation.reason }}
+                        </p>
+
+                        <p>
+                            <strong>Created:</strong>
+                            {{ escalation.created_at }}
+                        </p>
+
+                        {% if escalation.resolved_at %}
+
+                            <p>
+                                <strong>Resolved:</strong>
+                                {{ escalation.resolved_at }}
+                            </p>
+
+                        {% endif %}
+
+                        {% if escalation.notes %}
+
+                            <p>
+                                <strong>Notes:</strong>
+                                {{ escalation.notes }}
+                            </p>
+
+                        {% endif %}
+
+                        {% if not escalation.resolved_at %}
+
+                            <form method="post" action="/tickets/{{ ticket.id }}/escalation/resolve">
+
+                                <label for="notes">Resolution Notes</label>
+
+                                <textarea
+                                    id="notes"
+                                    name="notes"
+                                    rows="3"
+                                    required
+                                    placeholder="Describe how the escalation was resolved..."
+                                ></textarea>
+
+                                <button type="submit">Resolve Escalation</button>
+
+                            </form>
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+            
+            <h3>Bug Reports</h3>
+ 
+            <h4>Create Bug Report</h4>
+
+            <form method="post" action="/tickets/{{ ticket.id }}/bug-reports">
+
+                <label for="title">Title</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    required
+                    placeholder="Short description of the bug"
+                >
+
+                <label for="description">Description</label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="4"
+                    required
+                    placeholder="Describe the problem in detail..."
+                ></textarea>
+
+                <label for="steps_to_reproduce">Steps to Reproduce</label>
+
+                <textarea
+                    id="steps_to_reproduce"
+                    name="steps_to_reproduce"
+                    rows="6"
+                    required
+                    placeholder="1. Log in...
+                2. Navigate to...
+                3. Select...
+                4. Observe..."
+                ></textarea>
+
+                <label for="expected_result">Expected Result</label>
+
+                <textarea
+                    id="expected_result"
+                    name="expected_result"
+                    rows="4"
+                    required
+                    placeholder="Describe what should happen..."
+                ></textarea>
+
+                <label for="actual_result">Actual Result</label>
+
+                <textarea
+                    id="actual_result"
+                    name="actual_result"
+                    rows="4"
+                    required
+                    placeholder="Describe what actually happens..."
+                ></textarea>
+
+                <label for="impact_id">Impact</label>
+
+                <select id="impact_id" name="impact_id" required>
+
+                    {% for impact in impacts %}
+
+                        <option value="{{ impact.id }}">
+                            {{ impact.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <label for="environment">Environment</label>
+
+                <input
+                    type="text"
+                    id="environment"
+                    name="environment"
+                    required
+                    placeholder="Example: Windows 11, Google Chrome, CRM Production"
+                >
+
+            <button type="submit">Create Bug Report</button>
+            
+            </form>
+
+            {% if bug_reports %}
+                {% for bug in bug_reports %}
+
+                    <div class="bug-report">
+
+                        <h4>
+                            Bug #{{ bug.id }} — {{ bug.title }}
+                        </h4>
+
+                        <p>
+                            <strong>Impact:</strong>
+                            {{ bug.impact }}
+                        </p>
+
+                        <p>
+                            <strong>Environment:</strong>
+                            {{ bug.environment }}
+                        </p>
+
+                        <p>
+                            <strong>Description:</strong>
+                            {{ bug.description }}
+                        </p>
+
+                        <p>
+                            <strong>Steps to Reproduce:</strong>
+                        </p>
+
+                        <pre>{{ bug.steps_to_reproduce }}</pre>
+
+                        <p>
+                            <strong>Expected Result:</strong>
+                            {{ bug.expected_result }}
+                        </p>
+
+                        <p>
+                            <strong>Actual Result:</strong>
+                            {{ bug.actual_result }}
+                        </p>
+
+                        <p>
+                            <strong>Created:</strong>
+                            {{ bug.created_at }}
+                        </p>
+
+                    </div>
+
+                {% endfor %}
+            
+            {% else %}
+                
+                <p>No bug reports associated with this ticket.</p>
+
+            {% endif %}
+
+            </section>
+            
+            <h3>Add Update</h3>
+            
+            <form method="post" action="/tickets/{{ ticket.id }}/updates">
+                <label for="note">Update</label>
+                <textarea
+                    id="note"
+                    name="note"
+                    rows="5"
+                    required
+                ></textarea>
+
+                <button type="submit">Add Update</button>
+
+            </form>
+
+            <p>
+                <a href="/">← Back to Dashboard</a>
+            </p>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

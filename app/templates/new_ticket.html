@@ -68,22 +68,37 @@
 
                 </select>
 
-                <label for="priority_id">Priority</label>
+                <label for="impact_id">Impact</label>
 
-                <select id="priority_id" name="priority_id" required>
+                <select id="impact_id" name="impact_id" required>
 
-                    <option value="">Select a priority</option>
+                    <option value="">Select an impact</option>
 
-                    {% for priority in priorities %}
+                    {% for impact in impacts %}
 
-                        <option value="{{ priority.id }}">
-                            {{ priority.name }}
+                        <option value="{{ impact.id }}">
+                            {{ impact.name }}
                         </option>
 
                     {% endfor %}
 
                 </select>
                 
+                <label for="urgency_id">Urgency</label>
+
+                <select id="urgency_id" name="urgency_id" required>
+
+                    <option value="">Select an urgency</option>
+
+                    {% for urgency in urgencies %}
+
+                        <option value="{{ urgency.id }}">
+                            {{ urgency.name }}
+                        </option>
+
+                    {% endfor %}
+
+                </select>
 
                 <button type="submit">Create Ticket</button>
 

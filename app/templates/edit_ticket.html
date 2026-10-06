@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Ticket - Borealis Travel IT Support</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Borealis Travel IT Support</h1>
+        <p>Internal Helpdesk Portal</p>
+    </header>
+
+    <div class="layout">
+
+        <aside>
+            <nav>
+                <a href="/">Dashboard</a>
+                <a href="/new-ticket">New Ticket</a>
+                <a href="#">Users</a>
+                <a href="#">Knowledge Base</a>
+            </nav>
+        </aside>
+
+        <main>
+
+            <h2>Edit Ticket #{{ ticket.id }}</h2>
+
+            <form method="post" action="/tickets/{{ ticket.id }}/edit">
+
+                <label for="title">Title</label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    value="{{ ticket.title }}"
+                    required
+                >
+
+                <label for="description">Description</label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="8"
+                    required
+                >{{ ticket.description }}</textarea>
+
+                <button type="submit">Save Changes</button>
+
+            </form>
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

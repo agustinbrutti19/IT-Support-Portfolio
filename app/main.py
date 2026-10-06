@@ -10,8 +10,37 @@ from app.database import (
     create_ticket,
     get_users,
     get_categories,
-    get_priorities
+    get_priorities,
+    get_ticket,
+    get_all_tickets,
+    search_tickets,
+    get_tickets_by_status,
+    get_ticket_updates,
+    get_filtered_tickets,
+    get_ticket_escalations,
+    create_ticket_update,
+    get_statuses,
+    update_ticket_status,
+    get_ticket_status,
+    get_tickets_by_priority,
+    get_status_name,
+    get_it_users,
+    update_ticket_assignment,
+    update_ticket,
+    get_ticket_assigned_user,
+    is_valid_it_user,
+    calculate_priority,
+    get_impacts,
+    get_urgencies,
+    count_filtered_tickets,
+    get_escalation_teams,
+    create_ticket_escalation,
+    has_active_escalation,
+    resolve_ticket_escalation,
+    get_bug_reports,
+    create_bug_report
 )
+
 
 app = FastAPI()
 
@@ -39,11 +68,90 @@ def home(request: Request, ticket_created: int | None = None):
         }
     )
 
+@app.get("/tickets")
+def tickets_page(
+    request: Request,
+    search: str = "",
+    status: str = "",
+    priority: str = "",
+    assigned_to: str = "",
+    category: str = "",
+    sort: str = "newest",
+    page: int = 1
+):
+    page = max(page, 1)
+
+    statuses = get_statuses()
+    priorities = get_priorities()
+    it_users = get_it_users()
+    categories = get_categories()
+
+    status_id = int(status) if status else None
+    priority_id = int(priority) if priority else None
+    assigned_to_id = int(assigned_to) if assigned_to else None
+    category_id = int(category) if category else None
+    tickets_per_page = 10
+    offset = (page - 1) * tickets_per_page
+
+    tickets = get_filtered_tickets(
+        search=search,
+        status_id=status_id,
+        priority_id=priority_id,
+        assigned_to=assigned_to_id,
+        category_id=category_id,
+        sort=sort,
+        limit=tickets_per_page,
+        offset=offset
+    )
+
+    total_tickets = count_filtered_tickets(
+        search=search,
+        status_id=status_id,
+        priority_id=priority_id,
+        assigned_to=assigned_to_id,
+        category_id=category_id
+    )
+
+    total_pages = max(
+        1,
+        (total_tickets + tickets_per_page - 1) // tickets_per_page
+    )
+
+    if page > total_pages:
+        page = total_pages
+        offset = (page - 1) * tickets_per_page
+
+    if total_tickets == 0:
+        start_ticket = 0
+        end_ticket = 0
+    else:
+        start_ticket = offset + 1
+        end_ticket = min(offset + tickets_per_page, total_tickets)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="tickets.html",
+        context={
+            "tickets": tickets,
+            "statuses": statuses,
+            "priorities": priorities,
+            "it_users": it_users,
+            "categories": categories,
+            "page": page,
+            "total_pages": total_pages,
+            "total_tickets": total_tickets,
+            "start_ticket": start_ticket,
+            "end_ticket": end_ticket
+        }
+    )
+
 @app.get("/new-ticket")
 def new_ticket(request: Request):
     users = get_users()
     categories = get_categories()
     priorities = get_priorities()
+    impacts = get_impacts()
+    urgencies = get_urgencies()
 
     return templates.TemplateResponse(
         request=request,
@@ -51,8 +159,276 @@ def new_ticket(request: Request):
         context={
             "users": users,
             "categories": categories,
-            "priorities": priorities
+            "priorities": priorities,
+            "impacts": impacts,
+            "urgencies": urgencies,
+            "categories": categories
         }
+    )
+
+@app.get("/tickets/{ticket_id}")
+def ticket_detail(request: Request, ticket_id: int):
+    ticket = get_ticket(ticket_id)
+    updates = get_ticket_updates(ticket_id)
+    escalations = get_ticket_escalations(ticket_id)
+    bug_reports = get_bug_reports(ticket_id)
+    impacts = get_impacts()
+    statuses = get_statuses()
+    it_users = get_it_users()
+    escalation_teams = get_escalation_teams()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="ticket_detail.html",
+        context={
+            "ticket": ticket,
+            "updates": updates,
+            "escalations": escalations,
+            "bug_reports": bug_reports,
+            "impacts": impacts,
+            "statuses": statuses,
+            "it_users": it_users,
+            "escalation_teams": escalation_teams
+        }
+    )
+
+@app.post("/tickets/{ticket_id}/bug-reports")
+def create_bug_report_route(
+    ticket_id: int,
+    title: str = Form(...),
+    description: str = Form(...),
+    steps_to_reproduce: str = Form(...),
+    expected_result: str = Form(...),
+    actual_result: str = Form(...),
+    impact_id: int = Form(...),
+    environment: str = Form(...)
+):
+    bug_report_id = create_bug_report(
+        ticket_id,
+        title,
+        description,
+        steps_to_reproduce,
+        expected_result,
+        actual_result,
+        impact_id,
+        environment
+    )
+
+    create_ticket_update(
+        ticket_id,
+        7,
+        f"Bug Report #{bug_report_id} created: {title}."
+    )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
+    )
+
+@app.get("/tickets/{ticket_id}/edit")
+def edit_ticket(request: Request, ticket_id: int):
+    ticket = get_ticket(ticket_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="edit_ticket.html",
+        context={
+            "ticket": ticket
+        }
+    )
+
+@app.post("/tickets/{ticket_id}/edit")
+def save_ticket_edit(
+    ticket_id: int,
+    title: str = Form(...),
+    description: str = Form(...)
+):
+    current_ticket = get_ticket(ticket_id)
+    
+    changes = []
+
+    if current_ticket["title"] != title:
+        changes.append("title")
+
+    if current_ticket["description"] != description:
+        changes.append("description")
+
+    if changes:
+        change_text = " and ".join(changes)
+        history_note = f"Updated ticket {change_text}."
+
+    update_ticket(
+        ticket_id,
+        title,
+        description
+    )
+
+    if changes:
+        create_ticket_update(
+            ticket_id,
+            7,
+            history_note
+        )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
+    )
+
+@app.post("/tickets/{ticket_id}/updates")
+def add_ticket_update(
+    ticket_id: int,
+    note: str = Form(...)
+):
+    create_ticket_update(
+        ticket_id,
+        7,
+        note
+    )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
+    )
+
+@app.post("/tickets/{ticket_id}/escalation")
+def escalate_ticket(
+    ticket_id: int,
+    team_id: int = Form(...),
+    reason: str = Form(...)
+):
+    if has_active_escalation(ticket_id):
+        return RedirectResponse(
+            url=f"/tickets/{ticket_id}",
+            status_code=303
+        )
+
+    escalation_teams = get_escalation_teams()
+
+    valid_team_ids = [team["id"] for team in escalation_teams]
+
+    if team_id not in valid_team_ids:
+        return RedirectResponse(
+            url=f"/tickets/{ticket_id}",
+            status_code=303
+        )
+
+    team_name = None
+
+    for team in escalation_teams:
+        if team["id"] == team_id:
+            team_name = team["name"]
+            break
+
+    create_ticket_escalation(
+        ticket_id,
+        team_id,
+        reason
+    )
+
+    create_ticket_update(
+        ticket_id,
+        7,
+        f"Ticket escalated to {team_name}. Reason: {reason}"
+    )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
+    )
+
+@app.post("/tickets/{ticket_id}/escalation/resolve")
+def resolve_escalation(
+    ticket_id: int,
+    notes: str = Form(...)
+):
+    if not has_active_escalation(ticket_id):
+        return RedirectResponse(
+            url=f"/tickets/{ticket_id}",
+            status_code=303
+        )
+
+    resolve_ticket_escalation(
+        ticket_id,
+        notes
+    )
+
+    create_ticket_update(
+        ticket_id,
+        7,
+        f"Escalation resolved. Notes: {notes}"
+    )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
+    )
+
+@app.post("/tickets/{ticket_id}/status")
+def update_status(
+    ticket_id: int,
+    status_id: int = Form(...)
+):
+    old_status = get_ticket_status(ticket_id)
+    new_status = get_status_name(status_id)
+
+    update_ticket_status(
+        ticket_id,
+        status_id
+    )
+
+    create_ticket_update(
+        ticket_id,
+        7,
+        f"Status changed from {old_status} to {new_status}."
+    )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
+    )
+
+@app.post("/tickets/{ticket_id}/assignment")
+def update_assignment(
+    ticket_id: int,
+    assigned_to: int = Form(...)
+):
+    current_user = get_ticket_assigned_user(ticket_id)
+    new_users = get_it_users()
+
+    if not is_valid_it_user(assigned_to):
+        return RedirectResponse(
+            url=f"/tickets/{ticket_id}",
+            status_code=303
+        )
+
+    new_user_name = None
+
+    for user in new_users:
+        if user["id"] == assigned_to:
+            new_user_name = user["name"]
+            break
+
+    if current_user["id"] == assigned_to:
+        return RedirectResponse(
+            url=f"/tickets/{ticket_id}",
+            status_code=303
+        )
+
+    update_ticket_assignment(
+        ticket_id,
+        assigned_to
+    )
+
+    create_ticket_update(
+        ticket_id,
+        7,
+        f"Ticket assigned from {current_user['name']} to {new_user_name}."
+    )
+
+    return RedirectResponse(
+        url=f"/tickets/{ticket_id}",
+        status_code=303
     )
 
 @app.post("/new-ticket")
@@ -61,14 +437,16 @@ def submit_ticket(
     description: str = Form(...),
     user_id: int = Form(...),
     category_id: int = Form(...),
-    priority_id: int = Form(...)
+    impact_id: int = Form(...),
+    urgency_id: int = Form(...)
 ):
     ticket_id = create_ticket(
         title,
         description,
         user_id,
         category_id,
-        priority_id
+        impact_id,
+        urgency_id
     )
 
     return RedirectResponse(
