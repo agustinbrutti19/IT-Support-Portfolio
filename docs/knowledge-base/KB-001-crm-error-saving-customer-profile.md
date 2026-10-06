@@ -1,7 +1,7 @@
 # KB-001 — CRM Error When Saving Customer Profile
 
-**Category:** CRM  
-**System:** CRM  
+**Category:** Software / Application  
+**System:** CRM
 **Audience:** Helpdesk  
 **Severity:** High  
 **Last Updated:** 2026-10-06

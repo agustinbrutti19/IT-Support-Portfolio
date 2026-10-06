@@ -9,6 +9,10 @@ used by the IT Helpdesk.
 | ID | Article | System | Severity |
 |---|---|---|---|
 | KB-001 | CRM Error When Saving Customer Profile | CRM | High |
+| KB-002 | Microsoft 365 Login Issues | Microsoft 365 | Medium |
+| KB-003 | Zoom Microphone Troubleshooting | Zoom | Medium |
+| KB-004 | Shared Drive Access Issues | Shared Drives | Medium |
+| KB-005 | Laptop Performance Troubleshooting | Windows | Medium |
 
 ## Purpose
 
