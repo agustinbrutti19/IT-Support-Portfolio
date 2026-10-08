@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ article["metadata"]["id"] }} - Borealis Travel IT Support
+{% endblock %}
+
+{% block header_subtitle %}
+Knowledge Base
+{% endblock %}
+
+{% block content %}
+
+<h2>
+    {{ article["metadata"]["id"] }} — {{ article["metadata"]["title"] }}
+</h2>
+
+<div class="knowledge-base-meta">
+
+    <p>
+        <strong>System:</strong>
+        {{ article["metadata"]["system"] }}
+    </p>
+
+    <p>
+        <strong>Category:</strong>
+        {{ article["metadata"]["category"] }}
+    </p>
+
+    <p>
+        <strong>Audience:</strong>
+        {{ article["metadata"]["audience"] }}
+    </p>
+
+    <p>
+        <strong>Severity:</strong>
+        <span class="kb-severity kb-severity-{{ article['metadata']['severity'] | lower }}">
+            {{ article["metadata"]["severity"] }}
+        </span>
+    </p>
+
+    <p>
+        <strong>Last Updated:</strong>
+        {{ article["metadata"]["last_updated"] }}
+    </p>
+
+</div>
+
+<hr>
+
+<a href="/knowledge-base" class="back-link">
+    ← Back to Knowledge Base
+</a>
+
+<div class="knowledge-base-article">
+    {{ article["html"] | safe }}
+</div>
+
+{% endblock %}

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -9,6 +9,7 @@ from app.database import (
     get_resolved_ticket_count,
     create_ticket,
     get_users,
+    get_all_users,
     get_categories,
     get_priorities,
     get_ticket,
@@ -40,7 +41,10 @@ from app.database import (
     get_bug_reports,
     create_bug_report
 )
-
+from app.knowledge_base import (
+    get_knowledge_base_articles,
+    get_knowledge_base_article
+)
 
 app = FastAPI()
 
@@ -163,6 +167,63 @@ def new_ticket(request: Request):
             "impacts": impacts,
             "urgencies": urgencies,
             "categories": categories
+        }
+    )
+
+@app.get("/users")
+def users(request: Request):
+    users = get_all_users()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="users.html",
+        context={
+            "users": users
+        }
+    )
+
+@app.get("/knowledge-base")
+def knowledge_base(request: Request):
+    articles = get_knowledge_base_articles()
+
+    search = request.query_params.get("search", "").strip()
+
+    if search:
+        search_lower = search.lower()
+
+        articles = [
+            article
+            for article in articles
+            if search_lower in article["id"].lower()
+            or search_lower in article["title"].lower()
+            or search_lower in article["category"].lower()
+            or search_lower in article["system"].lower()
+        ]
+
+    return templates.TemplateResponse(
+        request=request,
+        name="knowledge_base.html",
+        context={
+            "articles": articles,
+            "search": search
+        }
+    )
+
+@app.get("/knowledge-base/{article_id}")
+def knowledge_base_article(article_id: str, request: Request):
+    article = get_knowledge_base_article(article_id)
+
+    if article is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Knowledge Base article not found"
+        )
+
+    return templates.TemplateResponse(
+        request=request,
+        name="knowledge_base_article.html",
+        context={
+            "article": article
         }
     )
 

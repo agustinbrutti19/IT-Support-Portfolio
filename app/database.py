@@ -332,6 +332,30 @@ def get_users():
 
     return users
 
+def get_all_users():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            users.id,
+            users.name,
+            users.email,
+            users.role,
+            users.status,
+            departments.name AS department
+        FROM users
+        LEFT JOIN departments
+            ON users.department_id = departments.id
+        ORDER BY users.name
+    """)
+
+    users = cursor.fetchall()
+
+    connection.close()
+
+    return users
+
 def get_categories():
     connection = get_connection()
     cursor = connection.cursor()

@@ -1,31 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends "base.html" %}
 
-<head>
-    <meta charset="UTF-8">
-    <title>Edit Ticket - Borealis Travel IT Support</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
+{% block title %}Edit Ticket #{{ ticket.id }} - Borealis Travel IT Support{% endblock %}
 
-<body>
+{% block header_subtitle %}
+Internal Helpdesk Portal
+{% endblock %}
 
-    <header>
-        <h1>Borealis Travel IT Support</h1>
-        <p>Internal Helpdesk Portal</p>
-    </header>
-
-    <div class="layout">
-
-        <aside>
-            <nav>
-                <a href="/">Dashboard</a>
-                <a href="/new-ticket">New Ticket</a>
-                <a href="#">Users</a>
-                <a href="#">Knowledge Base</a>
-            </nav>
-        </aside>
-
-        <main>
+{% block content %}
 
             <h2>Edit Ticket #{{ ticket.id }}</h2>
 
@@ -54,10 +35,4 @@
 
             </form>
 
-        </main>
-
-    </div>
-
-</body>
-
-</html>
+{% endblock %}

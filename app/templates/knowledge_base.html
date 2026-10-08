@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Knowledge Base - Borealis Travel IT Support{% endblock %}
+
+{% block header_subtitle %}
+Knowledge Base
+{% endblock %}
+
+{% block content %}
+
+<h2>Knowledge Base</h2>
+
+<p>
+    Technical documentation and troubleshooting guides for the IT Support team.
+</p>
+
+<form method="get" action="/knowledge-base" class="knowledge-base-search">
+
+    <input
+        type="text"
+        name="search"
+        value="{{ search }}"
+        placeholder="Search Knowledge Base..."
+    >
+
+    <button type="submit">
+        Search
+    </button>
+
+    {% if search %}
+    <a href="/knowledge-base" class="clear-search">
+        Clear Search
+    </a>
+    {% endif %}
+
+</form>
+
+{% if search and not articles %}
+
+<p class="empty-state">
+    No Knowledge Base articles found for "{{ search }}".
+</p>
+
+<a href="/knowledge-base" class="back-link">
+    ← Back to Knowledge Base
+</a>
+
+{% endif %}
+
+{% for article in articles %}
+
+<div class="knowledge-base-card">
+
+    <h3>
+        <a href="/knowledge-base/{{ article['id'] }}">
+            {{ article['id'] }} — {{ article['title'] }}
+        </a>
+    </h3>
+
+    <p>
+        <strong>System:</strong> {{ article['system'] }}
+    </p>
+
+    <p>
+        <strong>Category:</strong> {{ article['category'] }}
+    </p>
+
+    <p>
+        <strong>Severity:</strong>
+
+        <span class="kb-severity kb-severity-{{ article['severity'] | lower }}">
+            {{ article['severity'] }}
+        </span>
+    </p>
+
+    <p>
+        <strong>Last Updated:</strong> {{ article['last_updated'] }}
+    </p>
+
+</div>
+
+{% endfor %}
+
+{% endblock %}
