@@ -13,6 +13,7 @@ used by the IT Helpdesk.
 | KB-003 | Zoom Microphone Troubleshooting | Zoom | Medium |
 | KB-004 | Shared Drive Access Issues | Shared Drives | Medium |
 | KB-005 | Laptop Performance Troubleshooting | Windows | Medium |
+| KB-006 | Windows DNS Troubleshooting | VPN | Medium |
 
 ## Purpose
 
