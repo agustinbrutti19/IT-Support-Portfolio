@@ -1,5 +1,6 @@
 import sqlite3
 from pathlib import Path
+from database.calculate_priority import calculate_priority
 
 database_path = Path(__file__).parent.parent / "database" / "database.db"
 
@@ -719,24 +720,6 @@ def is_valid_it_user(user_id):
     connection.close()
 
     return user is not None
-
-def calculate_priority(impact, urgency):
-
-    priority_matrix = {
-        ("Low", "Low"): "Low",
-        ("Low", "Medium"): "Low",
-        ("Low", "High"): "Medium",
-
-        ("Medium", "Low"): "Low",
-        ("Medium", "Medium"): "Medium",
-        ("Medium", "High"): "High",
-
-        ("High", "Low"): "Medium",
-        ("High", "Medium"): "High",
-        ("High", "High"): "Critical"
-    }
-
-    return priority_matrix[(impact, urgency)]
 
 def get_priority_id(priority_name):
     connection = get_connection()

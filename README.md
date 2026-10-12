@@ -190,6 +190,24 @@ The project is developed locally with Python and a virtual environment.
 
 ## Testing and Validation
 
+### Automated Tests
+
+Automated tests are implemented using `pytest` to validate ticket priority calculation.
+
+The tests cover:
+
+- All nine combinations of impact and urgency.
+- Invalid impact and urgency values.
+- Case-insensitive input and whitespace normalization.
+- Rejection of non-string values.
+
+Run the automated tests from the project root:
+
+```bash
+python -m pytest tests/test_priority.py -v
+
+### Manual Testing
+
 The access group audit logging workflow has been manually tested:
 
 - Adding an access group creates an `ADDED` event.
