@@ -356,6 +356,85 @@ def get_all_users():
 
     return users
 
+def get_user_by_id(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            users.id,
+            users.name,
+            users.email,
+            users.role,
+            users.status,
+            users.created_at,
+            users.deactivated_at,
+            departments.name AS department
+        FROM users
+        LEFT JOIN departments
+            ON users.department_id = departments.id
+        WHERE users.id = ?
+    """, (user_id,))
+
+    user = cursor.fetchone()
+
+    connection.close()
+
+    return user
+
+def get_user_groups(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            groups.id,
+            groups.name
+        FROM user_groups
+        INNER JOIN groups
+            ON user_groups.group_id = groups.id
+        WHERE user_groups.user_id = ?
+        ORDER BY groups.name
+    """, (user_id,))
+
+    groups = cursor.fetchall()
+
+    connection.close()
+
+    return groups
+
+def get_user_access(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            groups.name AS group_name,
+            systems.name AS system_name,
+            GROUP_CONCAT(
+                permissions.name,
+                ', '
+            ) AS permissions
+        FROM user_groups
+        INNER JOIN groups
+            ON user_groups.group_id = groups.id
+        INNER JOIN group_permissions
+            ON groups.id = group_permissions.group_id
+        INNER JOIN systems
+            ON group_permissions.system_id = systems.id
+        INNER JOIN permissions
+            ON group_permissions.permission_id = permissions.id
+        WHERE user_groups.user_id = ?
+        GROUP BY groups.id, systems.id
+        ORDER BY groups.name, systems.name
+    """, (user_id,))
+
+    access = cursor.fetchall()
+
+    connection.close()
+
+    return access
+
 def get_categories():
     connection = get_connection()
     cursor = connection.cursor()
@@ -1033,3 +1112,115 @@ def create_bug_report(
 
     return bug_report_id
 
+def get_all_groups():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT id, name
+        FROM groups
+        ORDER BY name
+    """)
+
+    groups = cursor.fetchall()
+
+    connection.close()
+
+    return groups
+
+def update_user_groups(user_id, group_ids):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Get the user's current access groups
+    cursor.execute(
+        "SELECT group_id FROM user_groups WHERE user_id = ?",
+        (user_id,)
+    )
+    current_group_ids = {
+        row["group_id"] for row in cursor.fetchall()
+    }
+
+    # Normalize the submitted group IDs
+    new_group_ids = set(group_ids)
+
+    # Identify actual changes
+    added_group_ids = new_group_ids - current_group_ids
+    removed_group_ids = current_group_ids - new_group_ids
+
+    try:
+        # Replace the user's group assignments
+        cursor.execute(
+            "DELETE FROM user_groups WHERE user_id = ?",
+            (user_id,)
+        )
+
+        for group_id in new_group_ids:
+            cursor.execute("""
+                INSERT INTO user_groups (user_id, group_id)
+                VALUES (?, ?)
+            """, (user_id, group_id))
+
+        # Record groups that were added
+        for group_id in added_group_ids:
+            cursor.execute("""
+                INSERT INTO access_audit_logs (
+                    affected_user_id,
+                    group_id,
+                    action,
+                    performed_by
+                )
+                VALUES (?, ?, 'ADDED', ?)
+            """, (
+                user_id,
+                group_id,
+                "Alex Carter (IT Support)"
+            ))
+
+        # Record groups that were removed
+        for group_id in removed_group_ids:
+            cursor.execute("""
+                INSERT INTO access_audit_logs (
+                    affected_user_id,
+                    group_id,
+                    action,
+                    performed_by
+                )
+                VALUES (?, ?, 'REMOVED', ?)
+            """, (
+                user_id,
+                group_id,
+                "Alex Carter (IT Support)"
+            ))
+
+        connection.commit()
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        connection.close()
+
+def get_access_audit_logs(user_id):
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            access_audit_logs.id,
+            groups.name AS group_name,
+            access_audit_logs.action,
+            access_audit_logs.performed_by,
+            access_audit_logs.created_at
+        FROM access_audit_logs
+        JOIN groups
+            ON groups.id = access_audit_logs.group_id
+        WHERE access_audit_logs.affected_user_id = ?
+        ORDER BY access_audit_logs.id DESC
+    """, (user_id,))
+
+    logs = cursor.fetchall()
+    connection.close()
+
+    return logs

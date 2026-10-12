@@ -598,5 +598,20 @@ cursor.execute("""
       AND status_id != 4
 """)
 
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS access_audit_logs (
+        id INTEGER PRIMARY KEY,
+        affected_user_id INTEGER NOT NULL,
+        group_id INTEGER NOT NULL,
+        action TEXT NOT NULL CHECK (
+            action IN ('ADDED', 'REMOVED')
+        ),
+        performed_by TEXT NOT NULL,
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (affected_user_id) REFERENCES users(id),
+        FOREIGN KEY (group_id) REFERENCES groups(id)
+    )
+""")
+
 connection.commit()
 connection.close()

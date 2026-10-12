@@ -24,7 +24,11 @@ User Management
     <tbody>
         {% for user in users %}
         <tr>
-            <td>{{ user["name"] }}</td>
+            <td>
+                <a href="/users/{{ user['id'] }}">
+                    {{ user["name"] }}
+                </a>
+            </td>
             <td>{{ user["email"] }}</td>
             <td>{{ user["department"] }}</td>
             <td>{{ user["role"] }}</td>

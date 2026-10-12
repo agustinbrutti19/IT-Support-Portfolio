@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ user["name"] }} - Borealis Travel IT Support
+{% endblock %}
+
+{% block header_subtitle %}
+User Management
+{% endblock %}
+
+{% block content %}
+
+<h2>{{ user["name"] }}</h2>
+
+<div class="user-detail-card">
+
+    <p>
+        <strong>Email:</strong>
+        {{ user["email"] }}
+    </p>
+
+    <p>
+        <strong>Department:</strong>
+        {{ user["department"] }}
+    </p>
+
+    <p>
+        <strong>Role:</strong>
+        {{ user["role"] }}
+    </p>
+
+    <p>
+        <strong>Status:</strong>
+        {{ user["status"] }}
+    </p>
+
+    <p>
+        <strong>Created:</strong>
+        {{ user["created_at"] }}
+    </p>
+
+    <p>
+        <strong>Deactivated:</strong>
+        {{ user["deactivated_at"] or "N/A" }}
+    </p>
+
+</div>
+
+
+{% if groups_updated == 1 %}
+<div class="success-message">
+    Access groups updated successfully.
+</div>
+{% endif %}
+
+<h3>Access Groups</h3>
+
+<div class="user-groups">
+
+    {% for group in groups %}
+
+    <div class="user-group">
+
+        {{ group["name"] }}
+
+    </div>
+
+    {% endfor %}
+
+</div>
+
+<section class="detail-section">
+    <div class="section-header">
+        <h3>Manage Access Groups</h3>
+
+        <button
+            type="button"
+            id="edit-groups-button"
+            onclick="toggleGroupEditor()"
+        >
+            Edit Access Groups
+        </button>
+    </div>
+
+    <form
+        method="post"
+        action="/users/{{ user['id'] }}/groups"
+        id="group-editor"
+        style="display: none;"
+    >
+        {% for group in all_groups %}
+        <label class="group-option">
+            <input
+                type="checkbox"
+                name="group_ids"
+                value="{{ group['id'] }}"
+                {% if group['id'] in groups | map(attribute=0) | list %}
+                    checked
+                {% endif %}
+            >
+            {{ group['name'] }}
+        </label>
+        {% endfor %}
+
+        <button type="submit">Save Access Groups</button>
+        <button
+            type="button"
+            onclick="cancelGroupEditing()"
+        >
+            Cancel
+        </button>
+    </form>
+</section>
+
+<section class="detail-section">
+    <div class="section-header">
+        <h3>Access Group Audit History</h3>
+    </div>
+
+    {% if audit_logs %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Access Group</th>
+                        <th>Action</th>
+                        <th>Performed By</th>
+                        <th>Date & Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td>{{ log['group_name'] }}</td>
+                        <td>
+                            {% if log['action'] == 'ADDED' %}
+                                <span class="audit-badge audit-added">Added</span>
+                            {% else %}
+                                <span class="audit-badge audit-removed">Removed</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ log['performed_by'] }}</td>
+                        <td>{{ log['created_at'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No access group changes have been recorded for this user.</p>
+    {% endif %}
+</section>
+
+<h3>System Access & Permissions</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Access Group</th>
+            <th>System</th>
+            <th>Permissions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for item in access %}
+        <tr>
+            <td>{{ item["group_name"] }}</td>
+            <td>{{ item["system_name"] }}</td>
+            <td>
+                {% for permission in item["permissions"].split(", ") %}
+                    <span class="permission-badge" data-permission="{{ permission }}">
+                        {{ permission }}
+                    </span>
+                {% endfor %}
+
+                {% if "Admin" in item["permissions"].split(", ") or "Delete" in item["permissions"].split(", ") %}
+                    <p class="permission-warning">
+                        ⚠ Sensitive permissions — review access necessity.
+                    </p>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="3">No system access assigned.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<a href="/users" class="back-link">
+    ← Back to Users
+</a>
+
+<script>
+    function toggleGroupEditor() {
+        const editor = document.getElementById("group-editor");
+        const button = document.getElementById("edit-groups-button");
+
+        if (editor.style.display === "none") {
+            editor.style.display = "block";
+            button.textContent = "Close Editor";
+        } else {
+            editor.style.display = "none";
+            button.textContent = "Edit Access Groups";
+        }
+    }
+ 
+    function cancelGroupEditing() {
+        const editor = document.getElementById("group-editor");
+        const button = document.getElementById("edit-groups-button");
+        const checkboxes = editor.querySelectorAll(
+            'input[type="checkbox"]'
+        );
+
+        checkboxes.forEach(function (checkbox) {
+            checkbox.checked = checkbox.defaultChecked;
+        });
+
+        editor.style.display = "none";
+        button.textContent = "Edit Access Groups";
+    }
+</script>
+
+{% endblock %}
+

@@ -39,7 +39,13 @@ from app.database import (
     has_active_escalation,
     resolve_ticket_escalation,
     get_bug_reports,
-    create_bug_report
+    create_bug_report,
+    get_user_by_id,
+    get_user_groups,
+    get_user_access,
+    get_all_groups,
+    update_user_groups,
+    get_access_audit_logs
 )
 from app.knowledge_base import (
     get_knowledge_base_articles,
@@ -180,6 +186,64 @@ def users(request: Request):
         context={
             "users": users
         }
+    )
+
+@app.get("/users/{user_id}")
+def user_detail(user_id: int, request: Request, groups_updated: int = 0):
+    user = get_user_by_id(user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    groups = get_user_groups(user_id)
+    access = get_user_access(user_id)
+    all_groups = get_all_groups()
+    audit_logs = get_access_audit_logs(user_id)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="user_detail.html",
+        context={
+            "user": user,
+            "groups": groups,
+            "access": access,
+            "all_groups": all_groups,
+            "groups_updated": groups_updated,
+            "audit_logs": audit_logs
+        }
+    )
+
+
+@app.post("/users/{user_id}/groups")
+def update_user_groups_route(
+    user_id: int,
+    group_ids: list[int] = Form(default=[])
+):
+    user = get_user_by_id(user_id)
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    all_groups = get_all_groups()
+    valid_group_ids = {group["id"] for group in all_groups}
+
+    if not set(group_ids).issubset(valid_group_ids):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid access group"
+        )
+
+    update_user_groups(user_id, group_ids)
+
+    return RedirectResponse(
+        url=f"/users/{user_id}?groups_updated=1",
+        status_code=303
     )
 
 @app.get("/knowledge-base")
