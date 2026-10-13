@@ -558,21 +558,28 @@ def get_ticket_escalations(ticket_id):
 
 def create_ticket_update(ticket_id, user_id, note):
     connection = get_connection()
-    cursor = connection.cursor()
 
-    cursor.execute("""
-        INSERT INTO ticket_updates
-        (ticket_id, user_id, note)
-        VALUES (?, ?, ?)
-    """, (
-        ticket_id,
-        user_id,
-        note
-    ))
+    try:
+        cursor = connection.cursor()
 
-    connection.commit()
+        cursor.execute("""
+            INSERT INTO ticket_updates
+            (ticket_id, user_id, note)
+            VALUES (?, ?, ?)
+        """, (
+            ticket_id,
+            user_id,
+            note
+        ))
 
-    connection.close()
+        connection.commit()
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        connection.close()
 
 def get_statuses():
     connection = get_connection()
