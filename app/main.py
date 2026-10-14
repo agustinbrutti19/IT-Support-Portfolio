@@ -201,14 +201,27 @@ def users(request: Request):
     )
 
 @app.get("/audit-logs")
-def audit_logs_page(request: Request):
-    audit_logs = get_all_access_audit_logs()
+def audit_logs_page(
+    request: Request,
+    user_name: str = "",
+    action: str = ""
+):
+    search_name = user_name.strip()
+
+    selected_action = action if action in ("ADDED", "REMOVED") else None
+
+    audit_logs = get_all_access_audit_logs(
+        user_name=search_name if search_name else None,
+        action=selected_action
+    )
 
     return templates.TemplateResponse(
         request=request,
         name="audit_logs.html",
         context={
-            "audit_logs": audit_logs
+            "audit_logs": audit_logs,
+            "user_name": user_name,
+            "action": selected_action or ""
         }
     )
 

@@ -1272,13 +1272,13 @@ def get_access_audit_logs(user_id):
 
     return logs
 
-def get_all_access_audit_logs():
+def get_all_access_audit_logs(user_name=None, action=None):
     connection = get_connection()
 
     try:
         cursor = connection.cursor()
 
-        cursor.execute("""
+        query = """
             SELECT
                 access_audit_logs.id,
                 users.name AS user_name,
@@ -1292,11 +1292,24 @@ def get_all_access_audit_logs():
                 ON access_audit_logs.affected_user_id = users.id
             JOIN groups
                 ON access_audit_logs.group_id = groups.id
+            WHERE (? IS NULL OR users.name LIKE ?)
+              AND (? IS NULL OR access_audit_logs.action = ?)
             ORDER BY access_audit_logs.id DESC
-        """)
+        """
+
+        search_value = f"%{user_name}%" if user_name else None
+
+        cursor.execute(
+            query,
+            (
+                user_name,
+                search_value,
+                action,
+                action
+            )
+        )
 
         return cursor.fetchall()
 
     finally:
         connection.close()
-

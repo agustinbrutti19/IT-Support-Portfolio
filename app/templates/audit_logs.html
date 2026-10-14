@@ -17,6 +17,46 @@ Access Audit History
     Review all recorded access group changes across Borealis Travel.
 </p>
 
+<form method="get" action="/audit-logs" class="audit-search-form">
+    <div>
+        <label for="user_name">Search by affected user</label>
+
+        <input
+            type="text"
+            id="user_name"
+            name="user_name"
+            value="{{ user_name }}"
+            placeholder="Enter a user's name..."
+        >
+    </div>
+
+    <div>
+        <label for="action">Filter by action</label>
+
+        <select id="action" name="action">
+            <option value="" {% if not action %}selected{% endif %}>
+                All actions
+            </option>
+
+            <option value="ADDED" {% if action == "ADDED" %}selected{% endif %}>
+                Added
+            </option>
+
+            <option value="REMOVED" {% if action == "REMOVED" %}selected{% endif %}>
+                Removed
+            </option>
+        </select>
+    </div>
+
+    <button type="submit" class="button-primary">
+        Search
+    </button>
+
+    <a href="/audit-logs" class="button-secondary">
+        Clear
+    </a>
+</form>
+
 <section class="detail-section">
     {% if audit_logs %}
         <div class="table-container">
