@@ -1,0 +1,73 @@
+
+{% extends "base.html" %}
+
+{% block title %}
+Audit Log - Borealis Travel IT Support
+{% endblock %}
+
+{% block header_subtitle %}
+Access Audit History
+{% endblock %}
+
+{% block content %}
+
+<h2>Audit Log</h2>
+
+<p>
+    Review all recorded access group changes across Borealis Travel.
+</p>
+
+<section class="detail-section">
+    {% if audit_logs %}
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Affected User</th>
+                        <th>Access Group</th>
+                        <th>Action</th>
+                        <th>Performed By</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for log in audit_logs %}
+                    <tr>
+                        <td>{{ log['created_at'] }}</td>
+
+                        <td>{{ log['user_name'] }}</td>
+
+                        <td>{{ log['group_name'] }}</td>
+
+                        <td>
+                            {% if log['action'] == 'ADDED' %}
+                                <span class="audit-badge audit-added">
+                                    Added
+                                </span>
+                            {% else %}
+                                <span class="audit-badge audit-removed">
+                                    Removed
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <td>{{ log['performed_by'] }}</td>
+
+                        <td>{{ log['reason'] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>No audit events have been recorded yet.</p>
+    {% endif %}
+</section>
+
+<a href="/users" class="back-link">
+    ← Back to Users
+</a>
+
+{% endblock %}

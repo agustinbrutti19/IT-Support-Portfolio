@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}New Ticket - Borealis Travel IT Support{% endblock %}
@@ -8,81 +9,101 @@ Internal Helpdesk Portal
 
 {% block content %}
 
-            <h2>New Ticket</h2>
+<div class="ticket-form">
 
-            <p>Create a new helpdesk ticket.</p>
-            <form method="post" action="/new-ticket">
+    <div class="ticket-form-header">
+        <h2>Create a New Ticket</h2>
+        <p>
+            Submit an IT support request for an employee at Borealis Travel.
+            Provide enough detail to help the IT team investigate the issue.
+        </p>
+    </div>
 
-                <label for="title">Title</label>
-                <input type="text" id="title" name="title" required>
+    <form method="post" action="/new-ticket">
 
+        <div class="ticket-form-grid">
+
+            <div class="ticket-form-field full-width">
+                <label for="title">Ticket Title</label>
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="e.g. Unable to access Microsoft 365"
+                    required
+                >
+                <p class="ticket-form-hint">
+                    Summarize the problem in a few words.
+                </p>
+            </div>
+
+            <div class="ticket-form-field full-width">
                 <label for="description">Description</label>
-                <textarea id="description" name="description" required></textarea>
+                <textarea
+                    id="description"
+                    name="description"
+                    placeholder="Describe the issue, any error messages, and when it started..."
+                    required
+                ></textarea>
+                <p class="ticket-form-hint">
+                    Include relevant details that may help diagnose the issue.
+                </p>
+            </div>
 
-                <label for="user_id">User</label>
-                
+            <div class="ticket-form-field">
+                <label for="user_id">Affected User</label>
                 <select id="user_id" name="user_id" required>
-
-                    <option value="">Select a user</option>
+                    <option value="">Select an employee</option>
                     {% for user in users %}
-
-                        <option value="{{ user.id }}">
-                            {{ user.name }}
-                        </option>
-
+                    <option value="{{ user.id }}">{{ user.name }}</option>
                     {% endfor %}
-
                 </select>
+            </div>
 
+            <div class="ticket-form-field">
                 <label for="category_id">Category</label>
                 <select id="category_id" name="category_id" required>
-                    
                     <option value="">Select a category</option>
-
                     {% for category in categories %}
-
-                        <option value="{{ category.id }}">
-                            {{ category.name }}
-                        </option>
-                    
-                    {% endfor %}    
-
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
                 </select>
+            </div>
 
+            <div class="ticket-form-field">
                 <label for="impact_id">Impact</label>
-
                 <select id="impact_id" name="impact_id" required>
-
-                    <option value="">Select an impact</option>
-
+                    <option value="">Select the impact</option>
                     {% for impact in impacts %}
-
-                        <option value="{{ impact.id }}">
-                            {{ impact.name }}
-                        </option>
-
+                    <option value="{{ impact.id }}">{{ impact.name }}</option>
                     {% endfor %}
-
                 </select>
-                
+                <p class="ticket-form-hint">
+                    How many users or business activities are affected?
+                </p>
+            </div>
+
+            <div class="ticket-form-field">
                 <label for="urgency_id">Urgency</label>
-
                 <select id="urgency_id" name="urgency_id" required>
-
-                    <option value="">Select an urgency</option>
-
+                    <option value="">Select the urgency</option>
                     {% for urgency in urgencies %}
-
-                        <option value="{{ urgency.id }}">
-                            {{ urgency.name }}
-                        </option>
-
+                    <option value="{{ urgency.id }}">{{ urgency.name }}</option>
                     {% endfor %}
-
                 </select>
+                <p class="ticket-form-hint">
+                    How quickly does the issue need to be addressed?
+                </p>
+            </div>
 
-                <button type="submit">Create Ticket</button>
+        </div>
 
-            </form>
+        <div class="ticket-form-actions">
+            <button type="submit">Create Ticket</button>
+        </div>
+
+    </form>
+
+</div>
 
 {% endblock %}

@@ -18,59 +18,149 @@ Internal Helpdesk Portal
             {% endif %}
 
             <section class="stats">
-
                 <div class="card">
-                    <h3>Open Tickets</h3>
+                    <div class="stat-card-header">
+                        <h3>Open Tickets</h3>
+                        <div class="stat-icon stat-icon-open">
+                            <i class="icon-inbox"></i>
+                        </div>
+                    </div>
                     <p>{{ open_tickets }}</p>
+                    <span class="stat-description">Tickets awaiting resolution</span>
                 </div>
-
+                
                 <div class="card">
-                    <h3>High Priority</h3>
+                    <div class="stat-card-header">
+                        <h3>High Priority</h3>
+                        <div class="stat-icon stat-icon-high">
+                            <i class="icon-alert"></i>
+                        </div>
+                    </div>
                     <p>{{ high_priority }}</p>
+                    <span class="stat-description">Tickets requiring attention</span>
                 </div>
-
+                
                 <div class="card">
-                    <h3>Resolved</h3>
+                    <div class="stat-card-header">
+                        <h3>Resolved</h3>
+                        <div class="stat-icon stat-icon-resolved">
+                            <i class="icon-check"></i>
+                        </div>
+                    </div>
                     <p>{{ resolved_tickets }}</p>
+                    <span class="stat-description">Successfully resolved tickets</span>
+                </div>
+            
+            </section>
+
+            <section class="dashboard-chart">
+                <div class="dashboard-chart-header">
+                    <div>
+                        <h2>Tickets by Status</h2>
+                        <p>Overview of tickets across the support workflow.</p>
+                    </div>
                 </div>
 
+                <div class="status-chart">
+                    {% for item in ticket_status_counts %}
+                    <div class="status-chart-row">
+                        <div class="status-chart-label">
+                            <span>{{ item["status"] }}</span>
+                            <strong>{{ item["total"] }}</strong>
+                        </div>
+
+                        <div class="status-chart-track">
+                            <div
+                                class="status-chart-bar"
+                                data-status="{{ item['status'] }}"
+                                style="width: {{ (item['total'] / (max_ticket_count or 1)) * 100 }}%;"
+                            ></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </section>
 
-            <section>
+            <section class="critical-tickets-panel">
+                <div class="critical-tickets-header">
+                    <div>
+                        <h2>Critical Tickets Requiring Attention</h2>
+                        <p>Unresolved critical incidents that need immediate attention.</p>
+                    </div>
+                    <span class="critical-tickets-count">
+                        {{ critical_tickets | length }}
+                    </span>
+                </div>
+                
+                {% if critical_tickets %}
+                <div class="critical-tickets-list">
+                    {% for ticket in critical_tickets %}
+                    <a class="critical-ticket-item" href="/tickets/{{ ticket.id }}">
+                        <div class="critical-ticket-main">
+                            <span class="critical-ticket-id">#{{ ticket.id }}</span>
+                            <strong>{{ ticket.title }}</strong>
+                            <span class="critical-ticket-user">{{ ticket.user_name }}</span>
+                        </div>
+
+                        <div class="critical-ticket-meta">
+                            <span class="priority priority-critical">{{ ticket.priority }}</span>
+                            <span class="status status-{{ ticket.status | lower | replace(' ', '-') }}">
+                                {{ ticket.status }}
+                            </span>
+                            <span class="critical-ticket-link">View ticket →</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="critical-tickets-empty">
+                    <span class="critical-empty-icon">✓</span>
+                    <div>
+                        <strong>No critical tickets pending</strong>
+                        <p>There are no unresolved critical incidents right now.</p>
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+
+            <section class="dashboard-recent-tickets">
                 <h2>Recent Tickets</h2>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Title</th>
-                            <th>User</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {% for ticket in recent_tickets %}
-
-                        <tr>
-                            <td>#{{ ticket.id }}</td>
-                            <td>
-                                <a href="/tickets/{{ ticket.id }}">
-                                    {{ ticket.title }}
-                                </a>
-                            </td>
-                            <td>{{ ticket.user_name }}</td>
-                            <td>{{ ticket.priority }}</td>
-                            <td>{{ ticket.status }}</td>
-                        </tr>
-
-                        {% endfor %}
-
-                    </tbody>
-                </table>
-
+                <div class="dashboard-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>User</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            {% for ticket in recent_tickets %}
+                            <tr>
+                                <td>#{{ ticket.id }}</td>
+                                <td>
+                                    <a href="/tickets/{{ ticket.id }}">
+                                        {{ ticket.title }}
+                                    </a>
+                                </td>
+                                <td>{{ ticket.user_name }}</td>
+                                <td>
+                                    <span class="priority priority-{{ ticket.priority | lower }}">
+                                        {{ ticket.priority }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status status-{{ ticket.status | lower | replace(' ', '-') }}">
+                                        {{ ticket.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </section>
-
 {% endblock %}

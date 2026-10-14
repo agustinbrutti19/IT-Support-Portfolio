@@ -45,7 +45,10 @@ from app.database import (
     get_user_access,
     get_all_groups,
     update_user_groups,
-    get_access_audit_logs
+    get_access_audit_logs,
+    get_ticket_status_counts,
+    get_critical_open_tickets,
+    get_all_access_audit_logs
 )
 from app.knowledge_base import (
     get_knowledge_base_articles,
@@ -65,6 +68,12 @@ def home(request: Request, ticket_created: int | None = None):
     recent_tickets = get_recent_tickets()
     high_priority = get_high_priority_count()
     resolved_tickets = get_resolved_ticket_count()
+    ticket_status_counts = get_ticket_status_counts()
+    critical_tickets = get_critical_open_tickets()
+    max_ticket_count = max(
+        (item["total"] for item in ticket_status_counts),
+        default=0
+    )
 
     return templates.TemplateResponse(
         request=request,
@@ -74,7 +83,10 @@ def home(request: Request, ticket_created: int | None = None):
             "recent_tickets": recent_tickets,
             "high_priority": high_priority,
             "resolved_tickets": resolved_tickets,
-            "ticket_created": ticket_created
+            "ticket_created": ticket_created,
+            "ticket_status_counts": ticket_status_counts,
+            "critical_tickets": critical_tickets,
+            "max_ticket_count": max_ticket_count
         }
     )
 
@@ -188,6 +200,18 @@ def users(request: Request):
         }
     )
 
+@app.get("/audit-logs")
+def audit_logs_page(request: Request):
+    audit_logs = get_all_access_audit_logs()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="audit_logs.html",
+        context={
+            "audit_logs": audit_logs
+        }
+    )
+
 @app.get("/users/{user_id}")
 def user_detail(user_id: int, request: Request, groups_updated: int = 0):
     user = get_user_by_id(user_id)
@@ -220,7 +244,9 @@ def user_detail(user_id: int, request: Request, groups_updated: int = 0):
 @app.post("/users/{user_id}/groups")
 def update_user_groups_route(
     user_id: int,
-    group_ids: list[int] = Form(default=[])
+    request: Request,
+    group_ids: list[int] = Form(default=[]),
+    change_reason: str = Form(min_length=10)
 ):
     user = get_user_by_id(user_id)
 
@@ -228,6 +254,33 @@ def update_user_groups_route(
         raise HTTPException(
             status_code=404,
             detail="User not found"
+        )
+        
+    change_reason = change_reason.strip()
+    
+    if len(change_reason) < 10:
+        user = get_user_by_id(user_id)
+        groups = get_user_groups(user_id)
+        access = get_user_access(user_id)
+        all_groups = get_all_groups()
+        audit_logs = get_access_audit_logs(user_id)
+
+        return templates.TemplateResponse(
+            request=request,
+            name="user_detail.html",
+            context={
+                "user": user,
+                "groups": groups,
+                "access": access,
+                "all_groups": all_groups,
+                "groups_updated": 0,
+                "audit_logs": audit_logs,
+                "error_message": (
+                    "The reason must contain at least 10 "
+                    "non-whitespace characters."
+                )
+            },
+            status_code=400
         )
 
     all_groups = get_all_groups()
@@ -239,7 +292,7 @@ def update_user_groups_route(
             detail="Invalid access group"
         )
 
-    update_user_groups(user_id, group_ids)
+    update_user_groups(user_id, group_ids, change_reason)
 
     return RedirectResponse(
         url=f"/users/{user_id}?groups_updated=1",

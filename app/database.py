@@ -8,6 +8,7 @@ database_path = Path(__file__).parent.parent / "database" / "database.db"
 def get_connection():
     connection = sqlite3.connect(database_path)
     connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON")
     return connection
 
 def get_open_ticket_count():
@@ -37,7 +38,10 @@ def get_high_priority_count():
         FROM tickets
         JOIN priorities
             ON tickets.priority_id = priorities.id
-        WHERE priorities.name = 'High'
+        JOIN statuses
+            ON tickets.status_id = statuses.id
+        WHERE priorities.name IN ('High', 'Critical')
+          AND statuses.name NOT IN ('Resolved', 'Closed')
     """)
 
     result = cursor.fetchone()
@@ -181,6 +185,26 @@ def get_tickets_by_status(status_id):
 
     return tickets
 
+def get_ticket_status_counts():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            statuses.name AS status,
+            COUNT(tickets.id) AS total
+        FROM statuses
+        LEFT JOIN tickets
+            ON tickets.status_id = statuses.id
+        GROUP BY statuses.id, statuses.name
+        ORDER BY statuses.id
+    """)
+
+    results = cursor.fetchall()
+    connection.close()
+
+    return results
+
 def get_tickets_by_priority(priority_id):
     connection = get_connection()
     cursor = connection.cursor()
@@ -205,6 +229,34 @@ def get_tickets_by_priority(priority_id):
 
     tickets = cursor.fetchall()
 
+    connection.close()
+
+    return tickets
+
+def get_critical_open_tickets():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        SELECT
+            tickets.id,
+            tickets.title,
+            users.name AS user_name,
+            priorities.name AS priority,
+            statuses.name AS status
+        FROM tickets
+        JOIN users
+            ON tickets.user_id = users.id
+        JOIN priorities
+            ON tickets.priority_id = priorities.id
+        JOIN statuses
+            ON tickets.status_id = statuses.id
+        WHERE priorities.name = 'Critical'
+          AND statuses.name NOT IN ('Resolved', 'Closed')
+        ORDER BY tickets.id DESC
+    """)
+
+    tickets = cursor.fetchall()
     connection.close()
 
     return tickets
@@ -1118,7 +1170,7 @@ def get_all_groups():
 
     return groups
 
-def update_user_groups(user_id, group_ids):
+def update_user_groups(user_id, group_ids, change_reason):
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -1158,13 +1210,15 @@ def update_user_groups(user_id, group_ids):
                     affected_user_id,
                     group_id,
                     action,
-                    performed_by
+                    performed_by,
+                    reason
                 )
-                VALUES (?, ?, 'ADDED', ?)
+                VALUES (?, ?, 'ADDED', ?, ?)
             """, (
                 user_id,
                 group_id,
-                "Alex Carter (IT Support)"
+                "Alex Carter (IT Support)",
+                change_reason
             ))
 
         # Record groups that were removed
@@ -1174,13 +1228,15 @@ def update_user_groups(user_id, group_ids):
                     affected_user_id,
                     group_id,
                     action,
-                    performed_by
+                    performed_by,
+                    reason
                 )
-                VALUES (?, ?, 'REMOVED', ?)
+                VALUES (?, ?, 'REMOVED', ?, ?)
             """, (
                 user_id,
                 group_id,
-                "Alex Carter (IT Support)"
+                "Alex Carter (IT Support)",
+                change_reason
             ))
 
         connection.commit()
@@ -1202,6 +1258,7 @@ def get_access_audit_logs(user_id):
             groups.name AS group_name,
             access_audit_logs.action,
             access_audit_logs.performed_by,
+            access_audit_logs.reason,
             access_audit_logs.created_at
         FROM access_audit_logs
         JOIN groups
@@ -1214,3 +1271,32 @@ def get_access_audit_logs(user_id):
     connection.close()
 
     return logs
+
+def get_all_access_audit_logs():
+    connection = get_connection()
+
+    try:
+        cursor = connection.cursor()
+
+        cursor.execute("""
+            SELECT
+                access_audit_logs.id,
+                users.name AS user_name,
+                groups.name AS group_name,
+                access_audit_logs.action,
+                access_audit_logs.performed_by,
+                access_audit_logs.reason,
+                access_audit_logs.created_at
+            FROM access_audit_logs
+            JOIN users
+                ON access_audit_logs.affected_user_id = users.id
+            JOIN groups
+                ON access_audit_logs.group_id = groups.id
+            ORDER BY access_audit_logs.id DESC
+        """)
+
+        return cursor.fetchall()
+
+    finally:
+        connection.close()
+

@@ -53,6 +53,12 @@ User Management
 </div>
 {% endif %}
 
+{% if error_message %}
+    <div class="error-message" role="alert">
+        {{ error_message }}
+    </div>
+{% endif %}
+
 <h3>Access Groups</h3>
 
 <div class="user-groups">
@@ -76,6 +82,7 @@ User Management
         <button
             type="button"
             id="edit-groups-button"
+            class="button-primary"
             onclick="toggleGroupEditor()"
         >
             Edit Access Groups
@@ -86,6 +93,7 @@ User Management
         method="post"
         action="/users/{{ user['id'] }}/groups"
         id="group-editor"
+        class="group-editor-panel"
         style="display: none;"
     >
         {% for group in all_groups %}
@@ -102,13 +110,40 @@ User Management
         </label>
         {% endfor %}
 
-        <button type="submit">Save Access Groups</button>
-        <button
-            type="button"
-            onclick="cancelGroupEditing()"
-        >
-            Cancel
-        </button>
+        <div class="form-group">
+            <label for="change_reason">
+                Reason for Change
+            </label>
+            
+            <textarea
+                id="change_reason"
+                name="change_reason"
+                class="reason-textarea"
+                rows="3"
+                required
+                minlength="10"
+                placeholder="Explain why these access changes are necessary..."
+            ></textarea>
+
+            <small>
+                Provide a justification for the access changes (minimum 10 characters).
+            </small>
+        </div>
+
+        
+        <div class="group-editor-actions">
+            <button type="submit" class="button-primary">
+                Save Access Groups
+            </button>
+            
+            <button
+                type="button"
+                class="button-secondary"
+                onclick="cancelGroupEditing()"
+            >
+                Cancel
+            </button>
+        </div>
     </form>
 </section>
 
@@ -125,6 +160,7 @@ User Management
                         <th>Access Group</th>
                         <th>Action</th>
                         <th>Performed By</th>
+                        <th>Reason</th>
                         <th>Date & Time</th>
                     </tr>
                 </thead>
@@ -140,6 +176,7 @@ User Management
                             {% endif %}
                         </td>
                         <td>{{ log['performed_by'] }}</td>
+                        <td>{{ log['reason'] }}</td>
                         <td>{{ log['created_at'] }}</td>
                     </tr>
                     {% endfor %}
