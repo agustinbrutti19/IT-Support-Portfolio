@@ -204,15 +204,24 @@ def users(request: Request):
 def audit_logs_page(
     request: Request,
     user_name: str = "",
-    action: str = ""
+    action: str = "",
+    start_date: str = "",
+    end_date: str = ""
 ):
     search_name = user_name.strip()
 
-    selected_action = action if action in ("ADDED", "REMOVED") else None
+    selected_action = (
+        action if action in ("ADDED", "REMOVED") else None
+    )
+
+    selected_start_date = start_date or None
+    selected_end_date = end_date or None
 
     audit_logs = get_all_access_audit_logs(
         user_name=search_name if search_name else None,
-        action=selected_action
+        action=selected_action,
+        start_date=selected_start_date,
+        end_date=selected_end_date
     )
 
     return templates.TemplateResponse(
@@ -221,7 +230,9 @@ def audit_logs_page(
         context={
             "audit_logs": audit_logs,
             "user_name": user_name,
-            "action": selected_action or ""
+            "action": selected_action or "",
+            "start_date": start_date,
+            "end_date": end_date
         }
     )
 

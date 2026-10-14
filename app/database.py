@@ -1272,7 +1272,12 @@ def get_access_audit_logs(user_id):
 
     return logs
 
-def get_all_access_audit_logs(user_name=None, action=None):
+def get_all_access_audit_logs(
+    user_name=None,
+    action=None,
+    start_date=None,
+    end_date=None
+):
     connection = get_connection()
 
     try:
@@ -1294,6 +1299,8 @@ def get_all_access_audit_logs(user_name=None, action=None):
                 ON access_audit_logs.group_id = groups.id
             WHERE (? IS NULL OR users.name LIKE ?)
               AND (? IS NULL OR access_audit_logs.action = ?)
+              AND (? IS NULL OR date(access_audit_logs.created_at) >= date(?))
+              AND (? IS NULL OR date(access_audit_logs.created_at) <= date(?))
             ORDER BY access_audit_logs.id DESC
         """
 
@@ -1305,7 +1312,11 @@ def get_all_access_audit_logs(user_name=None, action=None):
                 user_name,
                 search_value,
                 action,
-                action
+                action,
+                start_date,
+                start_date,
+                end_date,
+                end_date
             )
         )
 
