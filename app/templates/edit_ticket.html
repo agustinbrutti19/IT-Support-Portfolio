@@ -1,4 +1,3 @@
-
 {% extends "base.html" %}
 
 {% block title %}Edit Ticket #{{ ticket.id }} - Borealis Travel IT Support{% endblock %}
@@ -14,7 +13,7 @@ Internal Helpdesk Portal
     <div class="edit-ticket-heading">
         <div>
             <h2>Edit Ticket #{{ ticket.id }}</h2>
-            <p>Update the ticket title or description.</p>
+            <p>Update the ticket title, category or description.</p>
         </div>
         <span class="edit-ticket-id">Ticket #{{ ticket.id }}</span>
     </div>
@@ -30,6 +29,20 @@ Internal Helpdesk Portal
                 value="{{ ticket.title }}"
                 required
             >
+        </div>
+
+        <div class="edit-ticket-field">
+            <label for="category_id">Category</label>
+            <select id="category_id" name="category_id" required>
+                {% for category in categories %}
+                <option
+                    value="{{ category.id }}"
+                    {% if category.id == ticket.category_id %}selected{% endif %}
+                >
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="edit-ticket-field">
@@ -52,3 +65,4 @@ Internal Helpdesk Portal
 </div>
 
 {% endblock %}
+

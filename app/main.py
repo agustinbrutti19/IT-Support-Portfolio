@@ -430,12 +430,14 @@ def create_bug_report_route(
 @app.get("/tickets/{ticket_id}/edit")
 def edit_ticket(request: Request, ticket_id: int):
     ticket = get_ticket(ticket_id)
+    categories = get_categories()
 
     return templates.TemplateResponse(
         request=request,
         name="edit_ticket.html",
         context={
-            "ticket": ticket
+            "ticket": ticket,
+            "categories": categories
         }
     )
 
@@ -443,10 +445,11 @@ def edit_ticket(request: Request, ticket_id: int):
 def save_ticket_edit(
     ticket_id: int,
     title: str = Form(...),
-    description: str = Form(...)
+    description: str = Form(...),
+    category_id: int = Form(...)
 ):
     current_ticket = get_ticket(ticket_id)
-    
+
     changes = []
 
     if current_ticket["title"] != title:
@@ -455,17 +458,20 @@ def save_ticket_edit(
     if current_ticket["description"] != description:
         changes.append("description")
 
-    if changes:
-        change_text = " and ".join(changes)
-        history_note = f"Updated ticket {change_text}."
+    if current_ticket["category_id"] != category_id:
+        changes.append("category")
 
     update_ticket(
         ticket_id,
         title,
-        description
+        description,
+        category_id
     )
 
     if changes:
+        change_text = " and ".join(changes)
+        history_note = f"Updated ticket {change_text}."
+
         create_ticket_update(
             ticket_id,
             7,

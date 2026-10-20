@@ -220,7 +220,6 @@ cursor.execute("""
         user_id INTEGER NOT NULL,
         note TEXT NOT NULL,
         created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE(ticket_id, user_id, note),
         FOREIGN KEY (ticket_id) REFERENCES tickets(id),
         FOREIGN KEY (user_id) REFERENCES users(id)
     )

@@ -1618,7 +1618,7 @@ td a:hover {
     color: #374151;
     font-size: 14px;
     line-height: 1.8;
-    white-space: pre-line;
+    white-space: normal;
     overflow-wrap: anywhere;
 }
 
@@ -2260,6 +2260,7 @@ td a:hover {
 }
 
 .edit-ticket-field input,
+.edit-ticket-field select,
 .edit-ticket-field textarea {
     box-sizing: border-box;
     width: 100%;
@@ -2279,6 +2280,7 @@ td a:hover {
 }
 
 .edit-ticket-field input:focus,
+.edit-ticket-field select:focus,
 .edit-ticket-field textarea:focus {
     outline: none;
     border-color: #2563eb;

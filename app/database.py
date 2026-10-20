@@ -1,9 +1,14 @@
+import os
 import sqlite3
 from pathlib import Path
 from database.calculate_priority import calculate_priority
 
-database_path = Path(__file__).parent.parent / "database" / "database.db"
-
+database_path = Path(
+    os.getenv(
+        "DATABASE_PATH",
+        str(Path(__file__).parent.parent / "database" / "database.db")
+    )
+)
 
 def get_connection():
     connection = sqlite3.connect(database_path)
@@ -349,7 +354,7 @@ def create_ticket(
 
     return ticket_id
 
-def update_ticket(ticket_id, title, description):
+def update_ticket(ticket_id, title, description, category_id):
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -357,11 +362,13 @@ def update_ticket(ticket_id, title, description):
         UPDATE tickets
         SET title = ?,
             description = ?,
+            category_id = ?,
             updated_at = CURRENT_TIMESTAMP
         WHERE id = ?
     """, (
         title,
         description,
+        category_id,
         ticket_id
     ))
 
@@ -529,6 +536,7 @@ def get_ticket(ticket_id):
             tickets.id,
             tickets.title,
             tickets.description,
+            tickets.category_id,
             users.name AS user_name,
             assigned_user.name AS assigned_to_name,
             priorities.name AS priority,
@@ -574,7 +582,7 @@ def get_ticket_updates(ticket_id):
         JOIN users
             ON ticket_updates.user_id = users.id
         WHERE ticket_updates.ticket_id = ?
-        ORDER BY ticket_updates.created_at ASC
+        ORDER BY ticket_updates.created_at ASC, ticket_updates.id ASC
     """, (ticket_id,))
 
     updates = cursor.fetchall()
