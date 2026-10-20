@@ -80,13 +80,14 @@ The application records changes to user access group assignments in the SQLite `
 
 ### 8. Knowledge Base
 
-Includes knowledge base articles KB-001 through KB-005 covering common troubleshooting scenarios:
+Includes knowledge base articles KB-001 through KB-006 covering common troubleshooting scenarios:
 
-- CRM errors when saving customer profiles.
-- Microsoft 365 login issues.
-- Zoom microphone troubleshooting.
-- Shared drive access issues.
-- Laptop performance troubleshooting.
+- KB-001: CRM errors when saving customer profiles.
+- KB-002: Microsoft 365 login issues.
+- KB-003: Zoom microphone troubleshooting.
+- KB-004: Shared drive access issues.
+- KB-005: Laptop performance troubleshooting.
+- KB-006: Windows DNS troubleshooting.
 
 ## Technology Stack
 

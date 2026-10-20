@@ -4,3 +4,4 @@ __pycache__/
 database/create_test_ticket.py
 database/database_backup.db
 database/database_before_ticket_updates_migration.db
+docs/tickets/
